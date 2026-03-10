@@ -1,0 +1,14 @@
+- name: Disable swap
+  command: swapoff -a
+
+- name: Remove swap from fstab
+  replace:
+    path: /etc/fstab
+    regexp: 'swap'
+    replace: '#swap'
+
+- name: Enable IP forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present

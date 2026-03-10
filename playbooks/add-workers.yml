@@ -1,0 +1,70 @@
+---
+- name: Prepare Kubernetes Worker Nodes
+  hosts: workers
+  become: true
+
+  tasks:
+
+  - name: Disable swap
+    command: swapoff -a
+
+  - name: Remove swap from fstab
+    replace:
+      path: /etc/fstab
+      regexp: '^\s*([^#].*\sswap\s+sw\s+.*)$'
+      replace: '# \1'
+
+  - name: Enable IP forwarding
+    sysctl:
+      name: net.ipv4.ip_forward
+      value: '1'
+      state: present
+      reload: yes
+
+  - name: Install required packages
+    apt:
+      name:
+        - conntrack
+        - apt-transport-https
+        - ca-certificates
+        - curl
+      update_cache: yes
+      state: present
+
+  - name: Install containerd
+    apt:
+      name: containerd
+      state: present
+
+  - name: Enable containerd
+    service:
+      name: containerd
+      state: started
+      enabled: yes
+
+  - name: Add Kubernetes repo key
+    shell: |
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key \
+      | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    args:
+      creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+  - name: Add Kubernetes repository
+    copy:
+      dest: /etc/apt/sources.list.d/kubernetes.list
+      content: |
+        deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /
+
+  - name: Install Kubernetes packages
+    apt:
+      name:
+        - kubelet
+        - kubeadm
+        - kubectl
+      state: present
+      update_cache: yes
+
+  - name: Enable kubelet
+    service:
+      name: kubelet
+      enabled: yes

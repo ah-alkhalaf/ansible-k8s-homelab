@@ -1,0 +1,11 @@
+- name: Install containerd
+  apt:
+    name: containerd
+    state: present
+    update_cache: yes
+
+- name: Enable containerd
+  service:
+    name: containerd
+    state: started
+    enabled: yes

@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: true
+
+  roles:
+    - common
+    - containerd
+    - kubernetes
+
+- hosts: workers
+  become: true
+
+  roles:
+    - worker
