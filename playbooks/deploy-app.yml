@@ -1,0 +1,16 @@
+---
+- name: Deploy application to Kubernetes
+  hosts: master
+  become: true
+
+  tasks:
+
+    - name: Copy manifests
+      copy:
+        src: ../k8s/
+        dest: /tmp/k8s/
+
+    - name: Apply manifests
+      command: kubectl apply -f /tmp/k8s/
+      environment:
+        KUBECONFIG: /home/k8s-master/.kube/config
